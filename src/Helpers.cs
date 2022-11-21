@@ -22,7 +22,6 @@ namespace FlashpointManagerCLI
         public long Size { get; }
         public string Hash { get; }
         public string[] Depends { get; } = new string[] { };
-        public bool Extra { get; } = false;
         public bool Downloaded { get; } = false;
         public bool Outdated { get; } = false;
 
@@ -101,10 +100,6 @@ namespace FlashpointManagerCLI
             string depends = GetAttribute(node, "depends", false);
 
             if (depends.Length > 0) Depends = depends.Split(' ');
-
-            // Extra
-
-            Extra = GetAttribute(node, "extra", false) == "true";
 
             // Downloaded, Outdated, SizeDifference
 
@@ -370,17 +365,17 @@ namespace FlashpointManagerCLI
 
         public static string FormatBytes(long bytes)
         {
-            if (bytes >= 1000000000000)
-            {
-                return (Math.Truncate((double)bytes / 100000000000) / 10).ToString("N1") + "TB";
-            }
-            else if (bytes >= 1000000000)
+            if (bytes >= 1000000000)
             {
                 return (Math.Truncate((double)bytes / 100000000) / 10).ToString("N1") + "GB";
             }
-            else
+            else if (bytes >= 1000000)
             {
                 return (Math.Truncate((double)bytes / 100000) / 10).ToString("N1") + "MB";
+            }
+            else
+            {
+                return (Math.Truncate((double)bytes / 100) / 10).ToString("N1") + "KB";
             }
         }
     }

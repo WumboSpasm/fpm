@@ -82,7 +82,6 @@ namespace FlashpointManagerCLI
                 Console.WriteLine($"Dependencies: \n  {string.Join($"\n  ", component.Depends)}\n");
             }
 
-            Console.WriteLine($"Extra?       {(component.Extra ? "Yes" : "No")}");
             Console.WriteLine($"Required?    {(component.ID.StartsWith("required") ? "Yes" : "No")}");
             Console.WriteLine($"Downloaded?  {(component.Downloaded ? "Yes" : "No")}");
 
@@ -134,7 +133,7 @@ namespace FlashpointManagerCLI
             }
             else
             {
-                toDownload = Common.Components.Where(item => !item.Extra).ToList();
+                toDownload = Common.Components;
                 totalSize = toDownload.Sum(item => item.Size);
             }
 

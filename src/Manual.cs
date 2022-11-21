@@ -31,8 +31,7 @@ COMMANDS:
     download [component component2 ...]
         Downloads the specified component(s) and any dependencies. The total
         size will be displayed and you will be asked if you want to proceed.
-        * If no components are specified, all non-extra components will be
-          downloaded.
+        * If no components are specified, all components will be downloaded.
         * Components that are already downloaded will be skipped.
 
     remove <component component2 ...>
