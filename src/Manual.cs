@@ -74,8 +74,8 @@ EXAMPLES:
     fpm list downloaded
         Displays a list of all downloaded components.
 
-    fpm info curatortools
-        Displays detailed information about the curatortools (Curator Tools)
+    fpm info core-launcher
+        Displays detailed information about the core-launcher (Launcher)
         component.
 
     fpm download theme-flatmetal logoset-adobeblue

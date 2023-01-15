@@ -19,6 +19,7 @@ namespace FlashpointManagerCLI
         public string Description { get; }
         public string ID { get; }
         public string URL { get; }
+        public string Directory { get; }
         public long Size { get; }
         public string Hash { get; }
         public string[] Depends { get; } = new string[] { };
@@ -68,6 +69,10 @@ namespace FlashpointManagerCLI
             if (!url.EndsWith("/")) url += "/";
 
             URL = url + $"{ID}.zip";
+
+            // Path
+
+            Directory = GetAttribute(node, "path", false);
 
             // Size
 
@@ -270,10 +275,20 @@ namespace FlashpointManagerCLI
 
             downloader.DownloadFileCompleted += (object sender, System.ComponentModel.AsyncCompletedEventArgs e) =>
             {
-                Console.WriteLine();
+                if (e.Error == null)
+                {
+                    Console.WriteLine();
+                }
             };
 
-            return await downloader.DownloadFileTaskAsync(component.URL);
+            var stream = await downloader.DownloadFileTaskAsync(component.URL);
+
+            if (stream == null)
+            {
+                SendMessage($"Component {component.ID} could not be retrieved (do you have an internet connection?)", true);
+            }
+
+            return stream;
         }
 
         public static void ExtractComponent(Stream stream, Component component)
@@ -301,7 +316,11 @@ namespace FlashpointManagerCLI
                     {
                         if (reader.Entry.IsDirectory) continue;
 
-                        reader.WriteEntryToDirectory(Common.Path, new ExtractionOptions
+                        string destPath = Path.Combine(Common.Path, component.Directory.Replace('/', '\\'));
+
+                        Directory.CreateDirectory(destPath);
+
+                        reader.WriteEntryToDirectory(destPath, new ExtractionOptions
                         {
                             ExtractFullPath = true,
                             Overwrite = true,
@@ -310,14 +329,14 @@ namespace FlashpointManagerCLI
 
                         using (TextWriter writer = File.AppendText(infoFile))
                         {
-                            writer.WriteLine(reader.Entry.Key.Replace("/", @"\"));
+                            writer.WriteLine(Path.Combine(component.Directory, reader.Entry.Key).Replace('/', '\\'));
                         }
 
                         extractedFiles++;
                         string percentage = (Math.Round((double)extractedFiles / totalFiles * 1000) / 10).ToString("N1").PadLeft(5);
 
                         Console.SetCursorPosition(0, Console.CursorTop);
-                        Console.Write($"[{percentage}%] Extracting {component.ID}... {extractedFiles} of {totalFiles} files");
+                        Console.Write($"[{percentage}%]  Extracting {component.ID}... {extractedFiles} of {totalFiles} files");
                     }
 
                     Console.WriteLine();
@@ -337,7 +356,7 @@ namespace FlashpointManagerCLI
                 string percentage = (Math.Round((double)i / (infoData.Length - 1) * 1000) / 10).ToString("N1").PadLeft(5);
 
                 Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write($"[{percentage}%] Removing {component.ID}... {i} of {infoData.Length - 1} files");
+                Console.Write($"[{percentage}%]    Removing {component.ID}... {i} of {infoData.Length - 1} files");
             }
 
             FullDelete(infoPath);

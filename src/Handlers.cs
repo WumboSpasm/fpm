@@ -82,7 +82,7 @@ namespace FlashpointManagerCLI
                 Console.WriteLine($"Dependencies: \n  {string.Join($"\n  ", component.Depends)}\n");
             }
 
-            Console.WriteLine($"Required?    {(component.ID.StartsWith("required") ? "Yes" : "No")}");
+            Console.WriteLine($"Required?    {(component.ID.StartsWith("core") ? "Yes" : "No")}");
             Console.WriteLine($"Downloaded?  {(component.Downloaded ? "Yes" : "No")}");
 
             if (component.Downloaded)
@@ -98,34 +98,34 @@ namespace FlashpointManagerCLI
             var toDownload = new List<Component>();
             long totalSize = 0;
 
-            if (args.Length > 0)
+            void UpdateQueues(string id, bool isDepend = false)
             {
-                void UpdateQueues(string id)
+                var component = Common.Components.FirstOrDefault(item => item.ID == id);
+
+                if (component == null)
                 {
-                    var component = Common.Components.FirstOrDefault(item => item.ID == id);
-
-                    if (component == null)
-                    {
-                        SendMessage($"Component {id} does not exist and will be skipped");
-                        return;
-                    }
-
-                    if (component.Downloaded)
-                    {
-                        SendMessage($"Component {id} is already downloaded and will be skipped");
-                    }
-                    else
-                    {
-                        toDownload.Add(component);
-                        totalSize += component.Size;
-
-                        foreach (string depend in component.Depends)
-                        {
-                            UpdateQueues(depend);
-                        }
-                    }
+                    SendMessage($"Component {id} does not exist and will be skipped");
+                    return;
                 }
 
+                if (!component.Downloaded)
+                {
+                    toDownload.Add(component);
+                    totalSize += component.Size;
+
+                    foreach (string depend in component.Depends)
+                    {
+                        UpdateQueues(depend, true);
+                    }
+                }
+                else if (!isDepend)
+                {
+                    SendMessage($"Component {id} is already downloaded and will be skipped");
+                }
+            }
+
+            if (args.Length > 0)
+            {
                 foreach (string id in args)
                 {
                     UpdateQueues(id);
@@ -133,9 +133,13 @@ namespace FlashpointManagerCLI
             }
             else
             {
-                toDownload = Common.Components;
-                totalSize = toDownload.Sum(item => item.Size);
+                foreach (var component in Common.Components)
+                {
+                    UpdateQueues(component.ID);
+                }
             }
+
+            toDownload = toDownload.Distinct().ToList();
 
             if (toDownload.Count > 0)
             {
@@ -210,6 +214,8 @@ namespace FlashpointManagerCLI
                 }
             }
 
+            toRemove = toRemove.Distinct().ToList();
+
             if (toRemove.Count > 0)
             {
                 Console.WriteLine($"{toRemove.Count} component(s) will be removed:");
@@ -279,7 +285,6 @@ namespace FlashpointManagerCLI
                         if (isDepend)
                         {
                             toDownload.Add(component);
-                            totalSize += component.Size;
                         }
                         else
                         {
@@ -293,8 +298,6 @@ namespace FlashpointManagerCLI
                     else
                     {
                         toUpdate.Add(component);
-                        totalSize += component.SizeDifference;
-
                         foreach (string depend in component.Depends)
                         {
                             UpdateQueues(depend, true);
@@ -310,8 +313,11 @@ namespace FlashpointManagerCLI
             else
             {
                 toUpdate = Common.Components.Where(item => item.Downloaded && item.Outdated).ToList();
-                totalSize = toUpdate.Sum(item => item.SizeDifference);
             }
+
+            toUpdate   = toUpdate.Distinct().ToList();
+            toDownload = toDownload.Distinct().ToList();
+            totalSize  = toUpdate.Sum(item => item.SizeDifference) + toDownload.Sum(item => item.Size);
 
             if (toUpdate.Count > 0)
             {
@@ -332,6 +338,8 @@ namespace FlashpointManagerCLI
                     {
                         Console.WriteLine($"  {component.ID}");
                     }
+
+                    Console.WriteLine();
                 }
             }
             else
