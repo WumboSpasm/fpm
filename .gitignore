@@ -2,7 +2,6 @@
 bin/
 obj/
 packages/
-Properties/
 FlashpointManagerCLI.csproj.user
 FodyWeavers.xsd
 FodyWeavers.xml

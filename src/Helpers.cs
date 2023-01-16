@@ -270,7 +270,9 @@ namespace FlashpointManagerCLI
                 string percentage = (Math.Round(e.ProgressPercentage * 10) / 10).ToString("N1").PadLeft(5);
 
                 Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write($"[{percentage}%] Downloading {component.ID}... {FormatBytes(e.ReceivedBytesSize)} of {FormatBytes(e.TotalBytesToReceive)}");
+                Console.Write(
+                    $"[{percentage}%] Downloading {component.ID}... {FormatBytes(e.ReceivedBytesSize)} of {FormatBytes(e.TotalBytesToReceive)}  "
+                );
             };
 
             downloader.DownloadFileCompleted += (object sender, System.ComponentModel.AsyncCompletedEventArgs e) =>
