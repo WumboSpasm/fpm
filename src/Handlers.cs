@@ -71,19 +71,21 @@ namespace FlashpointManagerCLI
                 SendMessage("Specified component does not exist", true);
             }
 
-            Console.WriteLine($"ID:          {component.ID}");
-            Console.WriteLine($"Title:       {component.Title}");
-            Console.WriteLine($"Description: {component.Description}");
-            Console.WriteLine($"Size:        {FormatBytes(component.Size)}");
-            Console.WriteLine($"CRC:         {component.Hash}\n");
+            Console.WriteLine($"ID:             {component.ID}");
+            Console.WriteLine($"Title:          {component.Title}");
+            Console.WriteLine($"Description:    {component.Description}");
+            Console.WriteLine($"Download size:  {FormatBytes(component.DownloadSize)}");
+            Console.WriteLine($"Install size:   {FormatBytes(component.InstallSize)}");
+            Console.WriteLine($"Last updated:   {component.LastUpdated}");
+            Console.WriteLine($"CRC32:          {component.Hash}\n");
 
             if (component.Depends.Length > 0)
             {
                 Console.WriteLine($"Dependencies: \n  {string.Join($"\n  ", component.Depends)}\n");
             }
 
-            Console.WriteLine($"Required?    {(component.ID.StartsWith("core") ? "Yes" : "No")}");
-            Console.WriteLine($"Downloaded?  {(component.Downloaded ? "Yes" : "No")}");
+            Console.WriteLine($"Required?       {(component.ID.StartsWith("core") ? "Yes" : "No")}");
+            Console.WriteLine($"Downloaded?     {(component.Downloaded ? "Yes" : "No")}");
 
             if (component.Downloaded)
             {
@@ -96,7 +98,8 @@ namespace FlashpointManagerCLI
             string[] args = Common.Args.Skip(1).ToArray();
 
             var toDownload = new List<Component>();
-            long totalSize = 0;
+            long downloadSize = 0;
+            long installSize  = 0;
 
             void UpdateQueues(string id, bool isDepend = false)
             {
@@ -111,7 +114,8 @@ namespace FlashpointManagerCLI
                 if (!component.Downloaded)
                 {
                     toDownload.Add(component);
-                    totalSize += component.Size;
+                    downloadSize += component.DownloadSize;
+                    installSize  += component.InstallSize;
 
                     foreach (string depend in component.Depends)
                     {
@@ -158,7 +162,8 @@ namespace FlashpointManagerCLI
                 return;
             }
 
-            Console.WriteLine($"Estimated size: {FormatBytes(totalSize)}\n");
+            Console.WriteLine($"Estimated download size: {FormatBytes(downloadSize)}");
+            Console.WriteLine($"Estimated install size:  {FormatBytes(installSize)}\n");
 
             char answer;
 
@@ -191,7 +196,7 @@ namespace FlashpointManagerCLI
             string[] args = Common.Args.Skip(1).ToArray();
 
             var toRemove = new List<Component>();
-            long totalSize = 0;
+            long removeSize = 0;
 
             foreach (string id in args)
             {
@@ -210,7 +215,7 @@ namespace FlashpointManagerCLI
                 else
                 {
                     toRemove.Add(component);
-                    totalSize += component.Size;
+                    removeSize += component.InstallSize;
                 }
             }
 
@@ -233,7 +238,7 @@ namespace FlashpointManagerCLI
                 return;
             }
 
-            Console.WriteLine($"Estimated freed size: {FormatBytes(totalSize)}\n");
+            Console.WriteLine($"Estimated freed size: {FormatBytes(removeSize)}\n");
 
             char answer;
 
@@ -266,7 +271,8 @@ namespace FlashpointManagerCLI
 
             var toUpdate   = new List<Component>();
             var toDownload = new List<Component>();
-            long totalSize = 0;
+            long downloadSize = 0;
+            long installSize  = 0;
 
             if (args.Length > 0)
             {
@@ -317,7 +323,8 @@ namespace FlashpointManagerCLI
 
             toUpdate   = toUpdate.Distinct().ToList();
             toDownload = toDownload.Distinct().ToList();
-            totalSize  = toUpdate.Sum(item => item.SizeDifference) + toDownload.Sum(item => item.Size);
+            downloadSize = toUpdate.Sum(item => item.DownloadSize) + toDownload.Sum(item => item.DownloadSize);
+            installSize  = toUpdate.Sum(item => item.SizeDifference) + toDownload.Sum(item => item.InstallSize);
 
             if (toUpdate.Count > 0)
             {
@@ -348,7 +355,8 @@ namespace FlashpointManagerCLI
                 return;
             }
 
-            Console.WriteLine($"Estimated size change: {FormatBytes(totalSize)}\n");
+            Console.WriteLine($"Estimated download size: {FormatBytes(downloadSize)}");
+            Console.WriteLine($"Estimated changed size:  {FormatBytes(installSize)}\n");
 
             char answer;
 

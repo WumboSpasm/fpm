@@ -20,14 +20,16 @@ namespace FlashpointManagerCLI
         public string ID { get; }
         public string URL { get; }
         public string Directory { get; }
-        public long Size { get; }
+        public string LastUpdated { get; }
+        public long DownloadSize { get; }
+        public long InstallSize { get; }
         public string Hash { get; }
         public string[] Depends { get; } = new string[] { };
         public bool Downloaded { get; } = false;
         public bool Outdated { get; } = false;
 
         private long oldSize = 0;
-        public long SizeDifference { get => Size - oldSize; }
+        public long SizeDifference { get => InstallSize - oldSize; }
 
         public Component(XmlNode node)
         {
@@ -74,17 +76,45 @@ namespace FlashpointManagerCLI
 
             Directory = GetAttribute(node, "path", false);
 
-            // Size
+            // LastUpdated
 
-            long size;
+            long lastUpdated;
 
-            if (long.TryParse(GetAttribute(node, "size", true), out size))
+            if (long.TryParse(GetAttribute(node, "date-modified", true), out lastUpdated))
             {
-                Size = size;
+                var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(lastUpdated).ToLocalTime();
+
+                LastUpdated = dateTime.ToShortDateString() + " " + dateTime.ToLongTimeString();
             }
             else
             {
-                Program.SendMessage("Component has a size with non-numeric characters; please alert Flashpoint staff", true);
+                Program.SendMessage("Component has an invalid timestamp; please alert Flashpoint staff", true);
+            }
+
+            // DownloadSize
+
+            long downloadSize;
+
+            if (long.TryParse(GetAttribute(node, "download-size", true), out downloadSize))
+            {
+                DownloadSize = downloadSize;
+            }
+            else
+            {
+                Program.SendMessage("Component has a download size with non-numeric characters; please alert Flashpoint staff", true);
+            }
+
+            // InstallSize
+
+            long installSize;
+
+            if (long.TryParse(GetAttribute(node, "install-size", true), out installSize))
+            {
+                InstallSize = installSize;
+            }
+            else
+            {
+                Program.SendMessage("Component has an install size with non-numeric characters; please alert Flashpoint staff", true);
             }
 
             // Hash
@@ -153,7 +183,7 @@ namespace FlashpointManagerCLI
     public static class Common
     {
         public static string Path = Directory.GetCurrentDirectory();
-        public static string Source = "http://localhost/components.xml";
+        public static string Source = "https://nexus-dev.unstable.life/repository/development/components.xml";
 
         public static List<Component> Components = new List<Component>();
 
@@ -306,7 +336,7 @@ namespace FlashpointManagerCLI
 
                     using (TextWriter writer = File.CreateText(infoFile))
                     {
-                        string[] header = new[] { component.Hash, component.Size.ToString() }.ToArray();
+                        string[] header = new[] { component.Hash, component.InstallSize.ToString() }.ToArray();
 
                         writer.WriteLine(string.Join(" ", header));
                     }
