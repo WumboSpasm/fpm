@@ -14,10 +14,19 @@ namespace FlashpointManagerCLI
 
             string[] cfg = File.ReadAllLines("fpm.cfg");
 
-            Common.Path = Common.Args[1];
-            if (cfg.Length >= 2) Common.Source = cfg[1];
+            if (Common.Args.Length > 1)
+            {
+                Common.Path = Common.Args[1];
+                if (cfg.Length > 1) Common.Source = cfg[1];
 
-            WriteConfig();
+                WriteConfig();
+            }
+            else
+            {
+                Console.WriteLine(cfg.Length > 0 ? cfg[0] : Common.Path);
+            }
+
+            Environment.Exit(0);
         }
 
         public static void SourceHandler()
@@ -26,10 +35,19 @@ namespace FlashpointManagerCLI
 
             string[] cfg = File.ReadAllLines("fpm.cfg");
 
-            if (cfg.Length >= 1) Common.Path = cfg[0];
-            Common.Source = Common.Args[1];
+            if (Common.Args.Length > 1)
+            {
+                if (cfg.Length > 0) Common.Path = cfg[0];
+                Common.Source = Common.Args[1];
 
-            WriteConfig();
+                WriteConfig();
+            }
+            else
+            {
+                Console.WriteLine(cfg.Length > 1 ? cfg[1] : Common.Source);
+            }
+
+            Environment.Exit(0);
         }
 
         public static void ListHandler()

@@ -26,24 +26,25 @@ namespace FlashpointManagerCLI
                 Console.WriteLine(HelpText);
                 Environment.Exit(0);
             }
-            else if (Common.Args.Length == 1 && new[] { "list", "download", "update" }.All(cmd => cmd != Common.Args[0]))
+            else if (Common.Args.Length == 1 && new[] { "info", "remove" }.Any(cmd => cmd == Common.Args[0]))
             {
                 SendMessage("At least one argument is required", true);
             }
 
-            if (Common.Args[0] == "path" || Common.Args[0] == "source")
+            if (Common.Args[0] != "path" && Common.Args[0] != "source")
             {
-                if (Common.Args[0] == "path")   PathHandler();
-                if (Common.Args[0] == "source") SourceHandler();
-
-                Environment.Exit(0);
+                InitConfig();
+                GetComponents().Wait();
             }
-
-            InitConfig();
-            GetComponents().Wait();
 
             switch (Common.Args[0])
             {
+                case "path":
+                    PathHandler();
+                    break;
+                case "source":
+                    SourceHandler();
+                    break;
                 case "list":
                     ListHandler();
                     break;

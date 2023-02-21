@@ -46,15 +46,19 @@ COMMANDS:
           updated.
         * Components that are up-to-date will be skipped.
 
-    path <value>
+    path [value]
         Modifies fpm.cfg with the specified value as the Flashpoint path.
         * If fpm.cfg does not exist, it will be created with the specified value
           as the Flashpoint path and a default value as the source URL.
+        * If no value is specified, the configured Flashpoint path (or the
+          default Flashpoint path if not configured) will be displayed.
 
-    source <value>
+    source [value]
         Modifies fpm.cfg with the specified value as the source URL.
         * If fpm.cfg does not exist, it will be created with a default value as
           the Flashpoint path and the specified value as the source URL.
+        * If no value is specified, the configured source URL (or the default
+          source URL if not configured) will be displayed.
 
 NOTES:
     If any command except for (path) and (source) is run without an existing
@@ -64,8 +68,6 @@ NOTES:
     will proceed.
 
     The default value for the Flashpoint path is the working directory.
-
-    The default value for the source URL is ???.
 
 EXAMPLES:
     fpm list
