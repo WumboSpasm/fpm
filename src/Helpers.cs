@@ -398,20 +398,24 @@ namespace FlashpointManagerCLI
 
         public static void FullDelete(string file)
         {
-            if (File.Exists(file)) File.Delete(file);
-
-            string folder = Path.GetDirectoryName(file);
-
-            while (folder != Common.Source)
+            try
             {
-                if (Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any())
-                {
-                    Directory.Delete(folder, false);
-                }
-                else break;
+                if (File.Exists(file)) File.Delete(file);
 
-                folder = Directory.GetParent(folder).ToString();
+                string folder = Path.GetDirectoryName(file);
+
+                while (folder != Common.Source)
+                {
+                    if (Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any())
+                    {
+                        Directory.Delete(folder, false);
+                    }
+                    else break;
+
+                    folder = Directory.GetParent(folder).ToString();
+                }
             }
+            catch { }
         }
 
         public static string FormatBytes(long bytes)
