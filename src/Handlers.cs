@@ -76,7 +76,7 @@ namespace FlashpointManagerCLI
                     }
                 }
 
-                Console.WriteLine($"{prefix} {component.ID}");
+                Console.WriteLine($"{prefix} {component.ID}" + (Common.Args.Last() == "verbose" ? $" ({component.Title})" : ""));
             }
         }
 

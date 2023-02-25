@@ -13,7 +13,7 @@ DESCRIPTION:
     Adds, removes, or updates components from a local Flashpoint copy.
 
 COMMANDS:
-    list [available|downloaded|updates]
+    list [available|downloaded|updates] [verbose]
         Displays a list of all components. Downloaded components will be
         prefixed with an asterisk (*) if up-to-date, or an exclamation mark (!)
         if outdated.
@@ -23,6 +23,8 @@ COMMANDS:
           downloaded will be displayed.
         * If the [updates] argument is specified, only downloaded components
           with pending updates will be displayed.
+        * If the [verbose] argument is specified, the component title will
+          display alongside the ID.
 
     info <component>
         Displays detailed information about the specified component, including
