@@ -45,7 +45,7 @@ COMMANDS:
         any new dependencies. The total changed size will be displayed and you
         will be asked if you want to proceed.
         * If no components are specified, all outdated components will be
-          updated.
+          updated, and any missing core components will be downloaded.
         * Components that are up-to-date will be skipped.
 
     path [value]
@@ -64,12 +64,8 @@ COMMANDS:
 
 NOTES:
     If any command except for (path) and (source) is run without an existing
-    fpm.cfg, a folder dialog will be opened and you will be prompted to select
-    the Flashpoint path. Afterwards, fpm.cfg will be created with the specified
-    Flashpoint path and the default value as the source URL, and the command
-    will proceed.
-
-    The default value for the Flashpoint path is the working directory.
+    fpm.cfg, the file will be created with default values. Otherwise, the values
+    specified in fpm.cfg will be used.
 
 EXAMPLES:
     fpm list
@@ -79,8 +75,8 @@ EXAMPLES:
         Displays a list of all downloaded components.
 
     fpm info core-launcher
-        Displays detailed information about the core-launcher (Launcher)
-        component.
+        Displays detailed information about the core-launcher (Flashpoint
+        Launcher) component.
 
     fpm download theme-flatmetal logoset-adobeblue
         Downloads the theme-flatmetal (Flat Metal launcher theme) and
@@ -92,8 +88,8 @@ EXAMPLES:
     fpm update
         Updates all outdated components to the latest version.
 
-    fpm update supportpack-common-navigator
-        Updates the supportpack-common-navigator (Flashpoint Navigator)
+    fpm update supportpack-common-secureplayer
+        Updates the supportpack-common-secureplayer (Flashpoint Secure Player)
         component.
 
     fpm path C:\Flashpoint

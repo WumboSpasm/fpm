@@ -102,7 +102,7 @@ namespace FlashpointManagerCLI
                 Console.WriteLine($"Dependencies: \n  {string.Join($"\n  ", component.Depends)}\n");
             }
 
-            Console.WriteLine($"Required?       {(component.ID.StartsWith("core") ? "Yes" : "No")}");
+            Console.WriteLine($"Required?       {(component.ID.StartsWith("core-") ? "Yes" : "No")}");
             Console.WriteLine($"Downloaded?     {(component.Downloaded ? "Yes" : "No")}");
 
             if (component.Downloaded)
@@ -336,7 +336,8 @@ namespace FlashpointManagerCLI
             }
             else
             {
-                toUpdate = Common.Components.Where(item => item.Downloaded && item.Outdated).ToList();
+                toUpdate   = Common.Components.Where(item => item.Downloaded && item.Outdated).ToList();
+                toDownload = Common.Components.Where(item => item.ID.StartsWith("core-") && !item.Downloaded).ToList();
             }
 
             toUpdate   = toUpdate.Distinct().ToList();
@@ -344,20 +345,23 @@ namespace FlashpointManagerCLI
             downloadSize = toUpdate.Sum(item => item.DownloadSize) + toDownload.Sum(item => item.DownloadSize);
             installSize  = toUpdate.Sum(item => item.SizeDifference) + toDownload.Sum(item => item.InstallSize);
 
-            if (toUpdate.Count > 0)
+            if (toUpdate.Count > 0 || toDownload.Count > 0)
             {
-                Console.WriteLine($"{toUpdate.Count} component(s) will be updated:");
-
-                foreach (var component in toUpdate)
+                if (toUpdate.Count > 0)
                 {
-                    Console.WriteLine($"  {component.ID}");
-                }
+                    Console.WriteLine($"{toUpdate.Count} component(s) will be updated:");
 
-                Console.WriteLine();
+                    foreach (var component in toUpdate)
+                    {
+                        Console.WriteLine($"  {component.ID}");
+                    }
+
+                    Console.WriteLine();
+                }
 
                 if (toDownload.Count > 0)
                 {
-                    Console.WriteLine($"{toUpdate.Count} component(s) will be downloaded:");
+                    Console.WriteLine($"{toDownload.Count} component(s) will be downloaded:");
 
                     foreach (var component in toDownload)
                     {
@@ -394,6 +398,12 @@ namespace FlashpointManagerCLI
             {
                 RemoveComponent(component);
 
+                var stream = await DownloadComponent(component);
+                ExtractComponent(stream, component);
+            }
+
+            foreach (var component in toDownload)
+            {
                 var stream = await DownloadComponent(component);
                 ExtractComponent(stream, component);
             }

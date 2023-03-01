@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Xml;
 
 using Downloader;
-using Microsoft.WindowsAPICodePack.Dialogs;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -182,7 +181,7 @@ namespace FlashpointManagerCLI
 
     public static class Common
     {
-        public static string Path = Directory.GetCurrentDirectory();
+        public static string Path = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
         public static string Source = "https://nexus-dev.unstable.life/repository/development/components.xml";
 
         public static List<Component> Components = new List<Component>();
@@ -227,19 +226,6 @@ namespace FlashpointManagerCLI
 
             if (cfg.Length == 0)
             {
-                SendMessage("Please select your Flashpoint folder");
-
-                var dialog = new CommonOpenFileDialog() { IsFolderPicker = true };
-
-                if (dialog.ShowDialog() == CommonFileDialogResult.Ok)
-                {
-                    Common.Path = dialog.FileName;
-                }
-                else
-                {
-                    SendMessage("No folder was selected, defaulting to working directory");
-                }
-
                 WriteConfig();
             }
             else
