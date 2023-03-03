@@ -285,11 +285,11 @@ namespace FlashpointManagerCLI
 
             downloader.DownloadProgressChanged += (object sender, DownloadProgressChangedEventArgs e) =>
             {
-                string percentage = (Math.Round(e.ProgressPercentage * 10) / 10).ToString("N1").PadLeft(5);
+                string percentage = (Math.Round(e.ProgressPercentage * 10) / 10).ToString("N1");
 
                 Console.SetCursorPosition(0, Console.CursorTop);
                 Console.Write(
-                    $"[{percentage}%] Downloading {component.ID}... {FormatBytes(e.ReceivedBytesSize)} of {FormatBytes(e.TotalBytesToReceive)}      "
+                    $"[{percentage,5}%] Downloading {component.ID}... {FormatBytes(e.ReceivedBytesSize)} of {FormatBytes(e.TotalBytesToReceive)}      "
                 );
             };
 
@@ -355,10 +355,10 @@ namespace FlashpointManagerCLI
                         }
 
                         extractedFiles++;
-                        string percentage = (Math.Round((double)extractedFiles / totalFiles * 1000) / 10).ToString("N1").PadLeft(5);
+                        string percentage = (Math.Round((double)extractedFiles / totalFiles * 1000) / 10).ToString("N1");
 
                         Console.SetCursorPosition(0, Console.CursorTop);
-                        Console.Write($"[{percentage}%]  Extracting {component.ID}... {extractedFiles} of {totalFiles} files");
+                        Console.Write($"[{percentage,5}%]  Extracting {component.ID}... {extractedFiles} of {totalFiles} files");
                     }
 
                     Console.WriteLine();
@@ -375,10 +375,10 @@ namespace FlashpointManagerCLI
             {
                 FullDelete(Path.Combine(Common.Path, infoData[i]));
 
-                string percentage = (Math.Round((double)i / (infoData.Length - 1) * 1000) / 10).ToString("N1").PadLeft(5);
+                string percentage = (Math.Round((double)i / (infoData.Length - 1) * 1000) / 10).ToString("N1");
 
                 Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write($"[{percentage}%]    Removing {component.ID}... {i} of {infoData.Length - 1} files");
+                Console.Write($"[{percentage,5}%]    Removing {component.ID}... {i} of {infoData.Length - 1} files");
             }
 
             FullDelete(infoPath);
@@ -419,7 +419,7 @@ namespace FlashpointManagerCLI
                 if (Math.Abs(bytes) >= unitSize) return (Math.Floor(bytes / unitSize * 10) / 10).ToString("N1") + units[i];
             }
 
-            return "0B";
+            return "0.0B";
         }
     }
 }
