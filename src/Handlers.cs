@@ -107,7 +107,7 @@ namespace FlashpointManagerCLI
 
             if (component.Downloaded)
             {
-                Console.WriteLine($"Up-to-date?  {(component.Outdated ? "No" : "Yes")}");
+                Console.WriteLine($"Up-to-date?     {(component.Outdated ? "No" : "Yes")}");
             }
         }
 

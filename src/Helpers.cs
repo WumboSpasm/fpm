@@ -145,7 +145,7 @@ namespace FlashpointManagerCLI
 
                 string[] infoHeader = File.ReadLines(infoPath).First().Split(' ');
 
-                if (infoHeader.Length == 2)
+                if (infoHeader.Length >= 2)
                 {
                     if (infoHeader[0] != Hash)
                     {
@@ -279,6 +279,8 @@ namespace FlashpointManagerCLI
 
         public static async Task<Stream> DownloadComponent(Component component)
         {
+            if (component.InstallSize == 0) return Stream.Null;
+
             DownloadService downloader = new DownloadService();
 
             downloader.DownloadProgressChanged += (object sender, DownloadProgressChangedEventArgs e) =>
@@ -287,7 +289,7 @@ namespace FlashpointManagerCLI
 
                 Console.SetCursorPosition(0, Console.CursorTop);
                 Console.Write(
-                    $"[{percentage}%] Downloading {component.ID}... {FormatBytes(e.ReceivedBytesSize)} of {FormatBytes(e.TotalBytesToReceive)}  "
+                    $"[{percentage}%] Downloading {component.ID}... {FormatBytes(e.ReceivedBytesSize)} of {FormatBytes(e.TotalBytesToReceive)}      "
                 );
             };
 
@@ -311,22 +313,24 @@ namespace FlashpointManagerCLI
 
         public static void ExtractComponent(Stream stream, Component component)
         {
+            string infoDir = Path.Combine(Common.Path, "Components");
+            string infoFile = Path.Combine(infoDir, $"{component.ID}.txt");
+
+            Directory.CreateDirectory(infoDir);
+
+            using (TextWriter writer = File.CreateText(infoFile))
+            {
+                string[] header = new[] { component.Hash, $"{component.InstallSize}" }.Concat(component.Depends).ToArray();
+
+                writer.WriteLine(string.Join(" ", header));
+            }
+
+            if (component.InstallSize == 0) return;
+
             using (var archive = ZipArchive.Open(stream))
             {
                 using (var reader = archive.ExtractAllEntries())
                 {
-                    string infoDir  = Path.Combine(Common.Path, "Components");
-                    string infoFile = Path.Combine(infoDir, $"{component.ID}.txt");
-
-                    Directory.CreateDirectory(infoDir);
-
-                    using (TextWriter writer = File.CreateText(infoFile))
-                    {
-                        string[] header = new[] { component.Hash, component.InstallSize.ToString() }.ToArray();
-
-                        writer.WriteLine(string.Join(" ", header));
-                    }
-
                     int extractedFiles = 0;
                     int totalFiles = archive.Entries.Where(item => !item.IsDirectory).ToArray().Length;
 
