@@ -182,7 +182,7 @@ namespace FlashpointManagerCLI
     public static class Common
     {
         public static string Path = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
-        public static string Source = "https://nexus-dev.unstable.life/repository/development/components.xml";
+        public static string Source = "https://nexus-dev.unstable.life/repository/stable/components.xml";
 
         public static List<Component> Components = new List<Component>();
 
