@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 using System.Xml;
 
-using Downloader;
 using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
 using SharpCompress.Readers;
@@ -243,7 +243,7 @@ namespace FlashpointManagerCLI
 
         public static async Task GetComponents()
         {
-            var stream = await new DownloadService().DownloadFileTaskAsync(Common.Source);
+            var stream = new MemoryStream(await new WebClient().DownloadDataTaskAsync(Common.Source));
 
             if (stream == null)
             {
@@ -281,38 +281,24 @@ namespace FlashpointManagerCLI
         {
             if (component.InstallSize == 0) return Stream.Null;
 
-            DownloadService downloader = new DownloadService();
+            Console.Write($"Downloading {component.ID}... ");
 
-            downloader.DownloadProgressChanged += (object sender, DownloadProgressChangedEventArgs e) =>
-            {
-                string percentage = (Math.Round(e.ProgressPercentage * 10) / 10).ToString("N1");
-
-                Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write(
-                    $"[{percentage,5}%] Downloading {component.ID}... {FormatBytes(e.ReceivedBytesSize)} of {FormatBytes(e.TotalBytesToReceive)}      "
-                );
-            };
-
-            downloader.DownloadFileCompleted += (object sender, System.ComponentModel.AsyncCompletedEventArgs e) =>
-            {
-                if (e.Error == null)
-                {
-                    Console.WriteLine();
-                }
-            };
-
-            var stream = await downloader.DownloadFileTaskAsync(component.URL);
+            var stream = new MemoryStream(await new WebClient().DownloadDataTaskAsync(component.URL));
 
             if (stream == null)
             {
                 SendMessage($"Component {component.ID} could not be retrieved (do you have an internet connection?)", true);
             }
 
+            Console.Write("done!\n");
+
             return stream;
         }
 
         public static void ExtractComponent(Stream stream, Component component)
         {
+            Console.Write($" Extracting {component.ID}... ");
+
             string infoDir = Path.Combine(Common.Path, "Components");
             string infoFile = Path.Combine(infoDir, $"{component.ID}.txt");
 
@@ -356,34 +342,28 @@ namespace FlashpointManagerCLI
 
                         extractedFiles++;
                         string percentage = (Math.Round((double)extractedFiles / totalFiles * 1000) / 10).ToString("N1");
-
-                        Console.SetCursorPosition(0, Console.CursorTop);
-                        Console.Write($"[{percentage,5}%]  Extracting {component.ID}... {extractedFiles} of {totalFiles} files");
                     }
-
-                    Console.WriteLine();
                 }
             }
+
+            Console.Write("done!\n");
         }
 
         public static void RemoveComponent(Component component)
         {
+            Console.Write($"   Removing {component.ID}... ");
+
             string infoPath = Path.Combine(Common.Path, "Components", $"{component.ID}.txt");
             string[] infoData = File.ReadAllLines(infoPath);
 
             for (int i = 1; i < infoData.Length; i++)
             {
                 FullDelete(Path.Combine(Common.Path, infoData[i]));
-
-                string percentage = (Math.Round((double)i / (infoData.Length - 1) * 1000) / 10).ToString("N1");
-
-                Console.SetCursorPosition(0, Console.CursorTop);
-                Console.Write($"[{percentage,5}%]    Removing {component.ID}... {i} of {infoData.Length - 1} files");
             }
 
             FullDelete(infoPath);
 
-            Console.WriteLine();
+            Console.Write("done!\n");
         }
 
         public static void FullDelete(string file)
