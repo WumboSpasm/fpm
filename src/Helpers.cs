@@ -137,7 +137,7 @@ namespace FlashpointManagerCLI
 
             // Downloaded, Outdated, SizeDifference
 
-            string infoPath = Path.Combine(Common.Path, "Components", $"{ID}.txt");
+            string infoPath = Path.Combine(Common.Path, "Components", ID);
 
             if (File.Exists(infoPath))
             {
@@ -300,7 +300,7 @@ namespace FlashpointManagerCLI
             Console.Write($" Extracting {component.ID}... ");
 
             string infoDir = Path.Combine(Common.Path, "Components");
-            string infoFile = Path.Combine(infoDir, $"{component.ID}.txt");
+            string infoFile = Path.Combine(infoDir, component.ID);
 
             Directory.CreateDirectory(infoDir);
 
@@ -353,7 +353,7 @@ namespace FlashpointManagerCLI
         {
             Console.Write($"   Removing {component.ID}... ");
 
-            string infoPath = Path.Combine(Common.Path, "Components", $"{component.ID}.txt");
+            string infoPath = Path.Combine(Common.Path, "Components", component.ID);
             string[] infoData = File.ReadAllLines(infoPath);
 
             for (int i = 1; i < infoData.Length; i++)
