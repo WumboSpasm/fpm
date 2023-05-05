@@ -243,9 +243,13 @@ namespace FlashpointManagerCLI
 
         public static async Task GetComponents()
         {
-            var stream = new MemoryStream(await new WebClient().DownloadDataTaskAsync(Common.Source));
+            MemoryStream stream = null;
 
-            if (stream == null)
+            try
+            {
+                stream = new MemoryStream(await new WebClient().DownloadDataTaskAsync(Common.Source));
+            }
+            catch
             {
                 SendMessage("Component list could not be retrieved (do you have an internet connection?)", true);
             }
