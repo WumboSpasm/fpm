@@ -243,6 +243,8 @@ namespace FlashpointManagerCLI
 
         public static async Task GetComponents()
         {
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
+
             MemoryStream stream = null;
 
             try
