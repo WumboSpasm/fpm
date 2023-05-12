@@ -181,8 +181,10 @@ namespace FlashpointManagerCLI
 
     public static class Common
     {
-        public static string Path = Directory.GetParent(Directory.GetCurrentDirectory()).FullName;
+        public static string Path = System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory.GetCurrentDirectory(), ".."));
         public static string Source = "https://nexus-dev.unstable.life/repository/stable/components.xml";
+
+        public static string Config { get => System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fpm.cfg"); }
 
         public static List<Component> Components = new List<Component>();
 
@@ -193,11 +195,11 @@ namespace FlashpointManagerCLI
     {
         public static void CheckConfig()
         {
-            if (!File.Exists("fpm.cfg"))
+            if (!File.Exists(Common.Config))
             {
                 try
                 {
-                    File.Create("fpm.cfg").Close();
+                    File.Create(Common.Config).Close();
                 }
                 catch
                 {
@@ -210,7 +212,7 @@ namespace FlashpointManagerCLI
         {
             try
             {
-                File.WriteAllLines("fpm.cfg", new[] { Common.Path, Common.Source });
+                File.WriteAllLines(Common.Config, new[] { Common.Path, Common.Source });
             }
             catch
             {
@@ -222,7 +224,7 @@ namespace FlashpointManagerCLI
         {
             CheckConfig();
 
-            string[] cfg = File.ReadAllLines("fpm.cfg");
+            string[] cfg = File.ReadAllLines(Common.Config);
 
             if (cfg.Length == 0)
             {

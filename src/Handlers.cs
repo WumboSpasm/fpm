@@ -12,7 +12,7 @@ namespace FlashpointManagerCLI
         {
             CheckConfig();
 
-            string[] cfg = File.ReadAllLines("fpm.cfg");
+            string[] cfg = File.ReadAllLines(Common.Config);
 
             if (Common.Args.Length > 1)
             {
@@ -33,7 +33,7 @@ namespace FlashpointManagerCLI
         {
             CheckConfig();
 
-            string[] cfg = File.ReadAllLines("fpm.cfg");
+            string[] cfg = File.ReadAllLines(Common.Config);
 
             if (Common.Args.Length > 1)
             {
