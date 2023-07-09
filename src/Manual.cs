@@ -1,10 +1,10 @@
-﻿namespace FlashpointManagerCLI
+﻿namespace FPM
 {
     public static partial class Program
     {
         static string HelpText { get; } =
 @"NAME:
-    fpm - BlueMaxima's Flashpoint Component Manager
+    fpm - Flashpoint Component Manager
 
 USAGE:
     fpm <command> [<arguments>...]
@@ -33,17 +33,23 @@ COMMANDS:
     download [component component2 ...]
         Downloads the specified component(s) and any dependencies. The total
         size will be displayed and you will be asked if you want to proceed.
+        * If a category is specified instead of a component, all components
+          within that category will be downloaded.
         * If no components are specified, all components will be downloaded.
         * Components that are already downloaded will be skipped.
 
     remove <component component2 ...>
         Removes the specified component(s). The total freed size will be 
         displayed and you will be asked if you want to proceed.
+        * If a category is specified instead of a component, all components
+          within that category will be removed.
 
     update [component component2 ...]
         Updates the specified component(s) to the latest version and downloads
         any new dependencies. The total changed size will be displayed and you
         will be asked if you want to proceed.
+        * If a category is specified instead of a component, all components
+          within that category will be updated.
         * If no components are specified, all outdated components will be
           updated, and any missing core components will be downloaded.
         * Components that are up-to-date will be skipped.

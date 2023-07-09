@@ -1,7 +1,4 @@
-﻿using System;
-using System.Linq;
-
-namespace FlashpointManagerCLI
+﻿namespace FPM
 {
     public static partial class Program
     {
@@ -16,8 +13,7 @@ namespace FlashpointManagerCLI
             "update"
         };
 
-        [STAThread]
-        static void Main(string[] args)
+        async static Task Main(string[] args)
         {
             Common.Args = args;
 
@@ -52,13 +48,13 @@ namespace FlashpointManagerCLI
                     InfoHandler();
                     break;
                 case "download":
-                    DownloadHandler().Wait();
+                    await DownloadHandler();
                     break;
                 case "remove":
                     RemoveHandler();
                     break;
                 case "update":
-                    UpdateHandler().Wait();
+                    await UpdateHandler();
                     break;
             }
 

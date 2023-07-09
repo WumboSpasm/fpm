@@ -1,7 +1,5 @@
 .vs/
 bin/
 obj/
-packages/
-FlashpointManagerCLI.csproj.user
-FodyWeavers.xsd
-FodyWeavers.xml
+Properties/
+fpm.csproj.user
