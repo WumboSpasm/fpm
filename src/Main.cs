@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Linq;
+using System.Threading.Tasks;
 
-namespace FlashpointManagerCLI
+namespace FPM
 {
     public static partial class Program
     {
@@ -16,8 +17,7 @@ namespace FlashpointManagerCLI
             "update"
         };
 
-        [STAThread]
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Common.Args = args;
 
@@ -34,7 +34,7 @@ namespace FlashpointManagerCLI
             if (Common.Args[0] != "path" && Common.Args[0] != "source")
             {
                 InitConfig();
-                GetComponents().Wait();
+                await GetComponents();
             }
 
             switch (Common.Args[0])
@@ -52,13 +52,13 @@ namespace FlashpointManagerCLI
                     InfoHandler();
                     break;
                 case "download":
-                    DownloadHandler().Wait();
+                    await DownloadHandler();
                     break;
                 case "remove":
                     RemoveHandler();
                     break;
                 case "update":
-                    UpdateHandler().Wait();
+                    await UpdateHandler();
                     break;
             }
 

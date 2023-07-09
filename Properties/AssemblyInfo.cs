@@ -4,11 +4,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("fpm - Flashpoint Manager")]
+[assembly: AssemblyTitle("fpm - Flashpoint Component Manager")]
 [assembly: AssemblyDescription("Command-line component manager for Flashpoint.")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("fpm - Flashpoint Manager")]
+[assembly: AssemblyProduct("fpm - Flashpoint Component Manager")]
 [assembly: AssemblyCopyright("")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -32,4 +32,4 @@ using System.Runtime.InteropServices;
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
 [assembly: AssemblyVersion("1.0.0.0")]
-[assembly: AssemblyFileVersion("1.0-rc5")]
+[assembly: AssemblyFileVersion("1.0-rc6")]

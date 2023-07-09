@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using System.Xml;
 
@@ -10,7 +11,7 @@ using SharpCompress.Archives.Zip;
 using SharpCompress.Common;
 using SharpCompress.Readers;
 
-namespace FlashpointManagerCLI
+namespace FPM
 {
     public class Component
     {
@@ -23,7 +24,7 @@ namespace FlashpointManagerCLI
         public long DownloadSize { get; }
         public long InstallSize { get; }
         public string Hash { get; }
-        public string[] Depends { get; } = new string[] { };
+        public string[] Depends { get; } = Array.Empty<string>();
         public bool Downloaded { get; } = false;
         public bool Outdated { get; } = false;
 
@@ -77,9 +78,7 @@ namespace FlashpointManagerCLI
 
             // LastUpdated
 
-            long lastUpdated;
-
-            if (long.TryParse(GetAttribute(node, "date-modified", true), out lastUpdated))
+            if (long.TryParse(GetAttribute(node, "date-modified", true), out long lastUpdated))
             {
                 var dateTime = new DateTime(1970, 1, 1, 0, 0, 0, 0).AddSeconds(lastUpdated).ToLocalTime();
 
@@ -92,9 +91,7 @@ namespace FlashpointManagerCLI
 
             // DownloadSize
 
-            long downloadSize;
-
-            if (long.TryParse(GetAttribute(node, "download-size", true), out downloadSize))
+            if (long.TryParse(GetAttribute(node, "download-size", true), out long downloadSize))
             {
                 DownloadSize = downloadSize;
             }
@@ -105,9 +102,7 @@ namespace FlashpointManagerCLI
 
             // InstallSize
 
-            long installSize;
-
-            if (long.TryParse(GetAttribute(node, "install-size", true), out installSize))
+            if (long.TryParse(GetAttribute(node, "install-size", true), out long installSize))
             {
                 InstallSize = installSize;
             }
@@ -181,14 +176,15 @@ namespace FlashpointManagerCLI
 
     public static class Common
     {
-        public static string Path = System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory.GetCurrentDirectory(), ".."));
-        public static string Source = "https://nexus-dev.unstable.life/repository/stable/components.xml";
+        public static string Path { get; set; } = System.IO.Path.GetFullPath(System.IO.Path.Combine(Directory.GetCurrentDirectory(), ".."));
+        public static string Source { get; set; } = "https://nexus-dev.unstable.life/repository/stable/components.xml";
 
         public static string Config { get => System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "fpm.cfg"); }
+        public static HttpClient Client { get; } = new HttpClient();
 
-        public static List<Component> Components = new List<Component>();
+        public static List<Component> Components { get; set; } = new List<Component>();
 
-        public static string[] Args;
+        public static string[] Args { get; set; } = Array.Empty<string>();
     }
 
     public static partial class Program
@@ -247,21 +243,27 @@ namespace FlashpointManagerCLI
         {
             ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12;
 
-            MemoryStream stream = null;
+            string xmlText = "";
 
             try
             {
-                stream = new MemoryStream(await new WebClient().DownloadDataTaskAsync(Common.Source));
+                xmlText = await Common.Client.GetStringAsync(Common.Source);
             }
             catch
             {
                 SendMessage("Component list could not be retrieved (do you have an internet connection?)", true);
             }
 
-            stream.Position = 0;
-
             var xml = new XmlDocument();
-            xml.Load(stream);
+
+            try
+            {
+                xml.LoadXml(xmlText);
+            }
+            catch
+            {
+                SendMessage("Component list could not be parsed; please alert Flashpoint staff", true);
+            }
 
             var root = xml.GetElementsByTagName("list");
 
@@ -289,77 +291,70 @@ namespace FlashpointManagerCLI
         {
             if (component.InstallSize == 0) return Stream.Null;
 
-            Console.Write($"Downloading {component.ID}... ");
+            Console.Write($"Downloading {component.ID}...");
 
-            var stream = new MemoryStream(await new WebClient().DownloadDataTaskAsync(component.URL));
+            var stream = new MemoryStream(await Common.Client.GetByteArrayAsync(component.URL));
 
             if (stream == null)
             {
                 SendMessage($"Component {component.ID} could not be retrieved (do you have an internet connection?)", true);
             }
 
-            Console.Write("done!\n");
+            Console.Write(" done!\n");
 
             return stream;
         }
 
         public static void ExtractComponent(Stream stream, Component component)
         {
-            Console.Write($" Extracting {component.ID}... ");
+            Console.Write($" Extracting {component.ID}...");
 
-            string infoDir = Path.Combine(Common.Path, "Components");
-            string infoFile = Path.Combine(infoDir, component.ID);
-
-            Directory.CreateDirectory(infoDir);
-
-            using (TextWriter writer = File.CreateText(infoFile))
+            var infoContents = new List<string>
             {
-                string[] header = new[] { component.Hash, $"{component.InstallSize}" }.Concat(component.Depends).ToArray();
-
-                writer.WriteLine(string.Join(" ", header));
-            }
+                string.Join(" ", new[] { component.Hash, $"{component.InstallSize}" }.Concat(component.Depends).ToArray())
+            };
 
             if (component.InstallSize == 0) return;
 
-            using (var archive = ZipArchive.Open(stream))
+            using (var reader = ZipArchive.Open(stream).ExtractAllEntries())
             {
-                using (var reader = archive.ExtractAllEntries())
+                while (reader.MoveToNextEntry())
                 {
-                    int extractedFiles = 0;
-                    int totalFiles = archive.Entries.Where(item => !item.IsDirectory).ToArray().Length;
+                    if (reader.Entry.IsDirectory) continue;
 
-                    while (reader.MoveToNextEntry())
+                    string destPath = Path.Combine(Common.Path, component.Directory.Replace('/', Path.DirectorySeparatorChar));
+
+                    Directory.CreateDirectory(destPath);
+
+                    reader.WriteEntryToDirectory(destPath, new ExtractionOptions
                     {
-                        if (reader.Entry.IsDirectory) continue;
+                        ExtractFullPath = true,
+                        Overwrite = true,
+                        PreserveFileTime = true
+                    });
 
-                        string destPath = Path.Combine(Common.Path, component.Directory.Replace('/', '\\'));
-
-                        Directory.CreateDirectory(destPath);
-
-                        reader.WriteEntryToDirectory(destPath, new ExtractionOptions
-                        {
-                            ExtractFullPath = true,
-                            Overwrite = true,
-                            PreserveFileTime = true
-                        });
-
-                        using (TextWriter writer = File.AppendText(infoFile))
-                        {
-                            writer.WriteLine(Path.Combine(component.Directory, reader.Entry.Key).Replace('/', '\\'));
-                        }
-
-                        extractedFiles++;
-                        string percentage = (Math.Round((double)extractedFiles / totalFiles * 1000) / 10).ToString("N1");
-                    }
+                    infoContents.Add(Path.Combine(component.Directory, reader.Entry.Key).Replace('/', Path.DirectorySeparatorChar));
                 }
             }
 
-            Console.Write("done!\n");
+            string infoDir = Path.Combine(Common.Path, "Components");
+
+            try
+            {
+                Directory.CreateDirectory(infoDir);
+                File.WriteAllLines(Path.Combine(infoDir, component.ID), infoContents);
+            }
+            catch
+            {
+                SendMessage("Component info file could not be created (is it open in another program?)", true);
+            }
+
+            Console.Write(" done!\n");
         }
 
         public static void RemoveComponent(Component component)
         {
-            Console.Write($"   Removing {component.ID}... ");
+            Console.Write($"   Removing {component.ID}...");
 
             string infoPath = Path.Combine(Common.Path, "Components", component.ID);
             string[] infoData = File.ReadAllLines(infoPath);
@@ -371,29 +366,40 @@ namespace FlashpointManagerCLI
 
             FullDelete(infoPath);
 
-            Console.Write("done!\n");
+            Console.Write(" done!\n");
         }
 
         public static void FullDelete(string file)
         {
+            file = Path.GetFullPath(file);
+
+            if (!Path.GetFullPath(file).StartsWith(Common.Path)) return;
+
             try
             {
-                if (File.Exists(file)) File.Delete(file);
-
-                string folder = Path.GetDirectoryName(file);
-
-                while (folder != Common.Source)
+                File.Delete(file);
+            }
+            catch (Exception e)
+            {
+                if (!(e is DirectoryNotFoundException))
                 {
-                    if (Directory.Exists(folder) && !Directory.EnumerateFileSystemEntries(folder).Any())
-                    {
-                        Directory.Delete(folder, false);
-                    }
-                    else break;
-
-                    folder = Directory.GetParent(folder).ToString();
+                    SendMessage($"Could not delete {file} (is it open in another program?)");
+                    return;
                 }
             }
-            catch { }
+
+            string folder = Path.GetDirectoryName(file);
+
+            while (folder != null && folder != Directory.GetParent(Common.Path).ToString())
+            {
+                if (Directory.Exists(folder) && !Directory.EnumerateFiles(folder, "*", SearchOption.AllDirectories).Any())
+                {
+                    try { Directory.Delete(folder, true); } catch { }
+                }
+                else break;
+
+                folder = Directory.GetParent(folder).ToString();
+            }
         }
 
         public static string FormatBytes(long bytes)
@@ -404,7 +410,7 @@ namespace FlashpointManagerCLI
             while (--i >= 0)
             {
                 double unitSize = Math.Pow(1024, i);
-                if (Math.Abs(bytes) >= unitSize) return (Math.Floor(bytes / unitSize * 10) / 10).ToString("N1") + units[i];
+                if (Math.Abs(bytes) >= unitSize) return (Math.Round(bytes / unitSize * 10) / 10).ToString("N1") + units[i];
             }
 
             return "0.0B";
