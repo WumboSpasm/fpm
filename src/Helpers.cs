@@ -314,26 +314,26 @@ namespace FPM
                 string.Join(" ", new[] { component.Hash, $"{component.InstallSize}" }.Concat(component.Depends).ToArray())
             };
 
-            if (component.InstallSize == 0) return;
-
-            using (var reader = ZipArchive.Open(stream).ExtractAllEntries())
+            if (component.InstallSize != 0)
             {
-                while (reader.MoveToNextEntry())
+                using (var reader = ZipArchive.Open(stream).ExtractAllEntries())
                 {
-                    if (reader.Entry.IsDirectory) continue;
-
-                    string destPath = Path.Combine(Common.Path, component.Directory.Replace('/', Path.DirectorySeparatorChar));
-
-                    Directory.CreateDirectory(destPath);
-
-                    reader.WriteEntryToDirectory(destPath, new ExtractionOptions
+                    while (reader.MoveToNextEntry())
                     {
-                        ExtractFullPath = true,
-                        Overwrite = true,
-                        PreserveFileTime = true
-                    });
+                        if (reader.Entry.IsDirectory) continue;
 
-                    infoContents.Add(Path.Combine(component.Directory, reader.Entry.Key).Replace('/', Path.DirectorySeparatorChar));
+                        string destPath = Path.Combine(Common.Path, component.Directory.Replace('/', Path.DirectorySeparatorChar));
+
+                        Directory.CreateDirectory(destPath);
+
+                        reader.WriteEntryToDirectory(destPath, new ExtractionOptions {
+                            ExtractFullPath = true,
+                            Overwrite = true,
+                            PreserveFileTime = true
+                        });
+
+                        infoContents.Add(Path.Combine(component.Directory, reader.Entry.Key).Replace('/', Path.DirectorySeparatorChar));
+                    }
                 }
             }
 
