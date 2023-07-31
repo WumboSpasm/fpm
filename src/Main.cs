@@ -20,6 +20,7 @@ namespace FPM
         static async Task Main(string[] args)
         {
             Common.Args = args;
+            Common.Client.Timeout = TimeSpan.FromSeconds(3);
 
             if (Common.Args.Length == 0 || Commands.All(cmd => cmd != Common.Args[0]))
             {
